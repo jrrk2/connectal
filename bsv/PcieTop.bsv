@@ -27,6 +27,8 @@ import Connectable       :: *;
 import ClientServer      :: *;
 import DefaultValue      :: *;
 
+import SyncFifo::*; // various choices of sync FIFOs
+
 import ConnectalConfig::*;
 `include "ConnectalProjectConfig.bsv"
 import PcieSplitter      :: *;
@@ -106,7 +108,8 @@ module mkPcieTop #(Clock pcie_refclk_p, Clock osc_50_b3b, Reset pcie_perst_n) (P
    end
 
    // going from level to edge-triggered interrupt
-   SyncFIFOIfc#(Bit#(4)) intrFifo <- mkSyncFIFO(8, host.portalClock, host.portalReset, host.pcieClock);
+   //SyncFIFOIfc#(Bit#(4)) intrFifo <- mkSyncFIFO(8, host.portalClock, host.portalReset, host.pcieClock);
+   SyncFIFOIfc#(Bit#(4)) intrFifo <- mkSyncFifo(8, host.portalClock, host.portalReset, host.pcieClock, host.pcieReset);
    Vector#(16, Reg#(Bool)) interruptRequested <- replicateM(mkReg(False, clocked_by host.portalClock, reset_by host.portalReset));
    rule interrupt_rule;
      Maybe#(Bit#(4)) intr = tagged Invalid;

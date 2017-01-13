@@ -32,7 +32,11 @@ import BRAMFIFO::*;
 import ConfigCounter::*;
 import Connectable::*;
 import ConnectalMemory::*;
-import ConnectalBramFifo::*;
+
+//import ConnectalBramFifo::*;
+import SyncFifo::*; // various choices of sync FIFOs
+import Clocks::*;
+
 import MemTypes::*;
 import Pipe::*;
 import MemUtils::*;
@@ -93,7 +97,8 @@ module mkMemReadChannel#(Integer bufferSizeBytes, Integer channelNumber, PipeOut
    ConfigCounter#(16)  clientAvail <- mkConfigCounter(fromInteger(bufferSizeBeats));
    Reg#(MemengineCmd)  clientCommand <- mkReg(unpack(0));
 `ifdef USE_DUAL_CLOCK_FIFOF
-   FIFOF#(MemDataF#(userWidth)) clientDataFifo <- mkDualClockBramFIFOF(clock, reset, clock, reset);
+   //FIFOF#(MemDataF#(userWidth)) clientDataFifo <- mkDualClockBramFIFOF(clock, reset, clock, reset);
+   SyncFIFOIfc#(MemDataF#(userWidth)) clientDataFifo <- mkSyncBramFifo(512, clock, reset, clock, reset);
 `else
    FIFOF#(MemDataF#(userWidth)) clientDataFifo <- mkSizedBRAMFIFOF(bufferSizeBeats);
 `endif

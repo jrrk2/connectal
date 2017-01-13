@@ -26,6 +26,8 @@ import ClientServer :: *;
 import Clocks :: *;
 import MemTypes :: *;
 
+import SyncFifo::*; // various choices of sync FIFOs
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Typeclass Definition
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +42,8 @@ instance ConnectableWithClocks#(Get#(a), Put#(a)) provisos (Bits#(a, awidth));
        Clock outClock = clockOf(out);
        Reset outReset = resetOf(out);
 
-       SyncFIFOIfc#(a) synchronizer <- mkSyncFIFO(8, inClock, inReset, outClock);
+       //SyncFIFOIfc#(a) synchronizer <- mkSyncFIFO(8, inClock, inReset, outClock);
+       SyncFIFOIfc#(a) synchronizer <- mkSyncFifo(8, inClock, inReset, outClock, outReset);
        rule doGet;
            let v <- in.get();
 	   synchronizer.enq(v);

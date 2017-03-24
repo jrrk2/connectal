@@ -52,6 +52,9 @@ def preprocess(sourcefilename, source, defs, bsvpath):
             return (sym, s)
         else:
             return (s, '')
+    # Removes block comments from source. This fixes syntax issues if you have
+    # markdown-like syntax in block comments. Woraround for github issue #142
+    source = re.sub(re.compile(r"/\*.*?\*/", re.MULTILINE | re.DOTALL), "", source)
     lines = source.splitlines()
     outlines = []
     while lines:

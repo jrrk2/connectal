@@ -249,8 +249,12 @@ static void pa_dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long offset,
 {
 }
 
-static int pa_dma_buf_begin_cpu_access(struct dma_buf *dmabuf, size_t start,
-                                       size_t len, enum dma_data_direction direction)
+static int pa_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0))
+				       size_t start,
+                                       size_t len,
+#endif
+				       enum dma_data_direction direction)
 {
         struct pa_buffer *buffer = dmabuf->priv;
         void *vaddr = NULL;
@@ -289,8 +293,18 @@ static int pa_dma_buf_begin_cpu_access(struct dma_buf *dmabuf, size_t start,
         return 0;
 }
 
-static void pa_dma_buf_end_cpu_access(struct dma_buf *dmabuf, size_t start,
-                                      size_t len, enum dma_data_direction direction)
+static
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,6,0))
+int
+#else
+void
+#endif
+pa_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0))
+				      size_t start,
+                                      size_t len,
+#endif
+				      enum dma_data_direction direction)
 {
         struct pa_buffer *buffer = dmabuf->priv;
 
@@ -300,12 +314,19 @@ static void pa_dma_buf_end_cpu_access(struct dma_buf *dmabuf, size_t start,
                 buffer->vaddr = NULL;
         }
         mutex_unlock(&buffer->lock);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,6,0))
+	return 0;
+#endif
 }
 
 static void *pa_dma_buf_vmap(struct dma_buf *dmabuf)
 {
         struct pa_buffer *buffer = dmabuf->priv;
-        pa_dma_buf_begin_cpu_access(dmabuf, 0, 0, 0);
+        pa_dma_buf_begin_cpu_access(dmabuf,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0))
+				    0, 0,
+#endif
+				    0);
         return buffer->vaddr;
 }
 
@@ -417,10 +438,9 @@ int portalmem_dmabuffer_create(PortalAlloc portalAlloc)
                 int ret = sg_alloc_table(table, infocount, GFP_KERNEL);
                 if (!ret) {
                         struct dma_buf *dmabuf;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,1,0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,1,0) || LINUX_VERSION_CODE == KERNEL_VERSION(3,10,0))
 			struct dma_buf_export_info export_info = {
 				.exp_name = "portalmem",
-				.owner    = THIS_MODULE
 			};
 #endif
                         sg = table->sgl;
@@ -456,18 +476,18 @@ int portalmem_dmabuffer_create(PortalAlloc portalAlloc)
 #endif
                                 sg_dma_address(sg) = sg_phys(sg);
                         }
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,1,0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,1,0) || LINUX_VERSION_CODE == KERNEL_VERSION(3,10,0))
 			export_info.ops = &dma_buf_ops;
 			export_info.size = len;
 			export_info.flags = O_RDWR;
 			export_info.priv = buffer;
 			dmabuf = dma_buf_export(&export_info);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0))
+                        dmabuf = dma_buf_export(buffer, &dma_buf_ops, len, O_RDWR , NULL);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0))
+                        dmabuf = dma_buf_export(buffer, &dma_buf_ops, len, O_RDWR);
 #else
-                        dmabuf = dma_buf_export(buffer, &dma_buf_ops, len, O_RDWR
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0))
-                                                , NULL
-#endif
-                                );
+#error no dma_buf support known for this kernel version
 #endif
                         if (IS_ERR(dmabuf))
                                 pa_buffer_free(buffer);

@@ -118,10 +118,14 @@ if {$partname != {xc7vx690tffg1761-2} && $partname != {xc7vx690tffg1761-3}} {
 						  CONFIG.shared_logic_in_core {true} \
 						 ]
 } else {
-    fpgamake_ipcore axi_pcie3 2.1 axi_pcie_rp [list \
+    if {[version -short] >= "2016.1"} {
+	set axi_pcie3_version 2.1
+    } else {
+	set axi_pcie3_version 2.0
+    }
+    fpgamake_ipcore axi_pcie3 $axi_pcie3_version axi_pcie_rp [list \
 						   CONFIG.axi_data_width {128_bit} \
 						   CONFIG.axibar_highaddr_0 {0xffffffffffffffff} \
-						   CONFIG.axisten_freq {125} \
 						   CONFIG.dedicate_perst {false} \
 						   CONFIG.device_port_type {Root_Port_of_PCI_Express_Root_Complex} \
 						   CONFIG.mode_selection {Advanced} \
@@ -133,12 +137,26 @@ if {$partname != {xc7vx690tffg1761-2} && $partname != {xc7vx690tffg1761-3}} {
 						   CONFIG.pf0_class_code_base {06} \
 						   CONFIG.pf0_class_code_sub {07} \
 						   CONFIG.pf0_device_id {7131} \
-						   CONFIG.pf0_link_status_slot_clock_config {true} \
 						   CONFIG.pf0_sub_class_interface_menu {CardBus_bridge} \
 						   CONFIG.pl_link_cap_max_link_speed {5.0_GT/s} \
 						   CONFIG.pl_link_cap_max_link_width {X4} \
-						   CONFIG.plltype {QPLL1} \
 						   CONFIG.s_axi_id_width {4} \
 						  ]
 }
+
+if {[version -short] >= "2016.1"} {
+    set dual_clock_axis_fifo_version 13.1
+} else {
+    set dual_clock_axis_fifo_version 13.0
+}
+fpgamake_ipcore fifo_generator $dual_clock_axis_fifo_version dual_clock_axis_fifo_32x8 [list \
+                           CONFIG.INTERFACE_TYPE {AXI_STREAM} \
+                           CONFIG.Clock_Type_AXI {Independent_Clock} \
+                           CONFIG.TDATA_NUM_BYTES {4} \
+                           CONFIG.TUSER_WIDTH {0} \
+                           CONFIG.Enable_TLAST {true} \
+                           CONFIG.HAS_TKEEP {true} \
+                           CONFIG.FIFO_Application_Type_axis {Data_FIFO} \
+                           CONFIG.Reset_Type {Asynchronous_Reset} \
+                           ]
 

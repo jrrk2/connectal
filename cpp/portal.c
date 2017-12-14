@@ -54,7 +54,10 @@
 int simulator_dump_vcd = 0;
 const char *simulator_vcd_name = "dump.vcd";
 // set this to 1 to suppress call to fpgajtag
-int noprogram = 0;
+#ifndef DEFAULT_NOPROGRAM
+#define DEFAULT_NOPROGRAM 0
+#endif
+int noprogram = DEFAULT_NOPROGRAM;
 
 static int trace_portal;//= 1;
 
@@ -76,6 +79,7 @@ void init_portal_internal(PortalInternal *pint, int id, int tile,
     memset(pint, 0, sizeof(*pint));
     if(!utility_portal)
       utility_portal = pint;
+    pint->board_number = 0;
     pint->fpga_number = id;
     pint->fpga_tile = tile;
     pint->fpga_fd = -1;
@@ -84,8 +88,11 @@ void init_portal_internal(PortalInternal *pint, int id, int tile,
     pint->cb = (PortalHandlerTemplate *)cb;
     pint->parent = parent;
     pint->reqinfo = reqinfo;
+    pint->busyType = BUSY_SPIN;
+    if (getenv("FPGA_NUMBER") != 0)
+	pint->board_number = strtoul(getenv("FPGA_NUMBER"), 0, 0);
     if(trace_portal)
-        PORTAL_PRINTF("%s: **initialize portal_%d_%d handler %p cb %p parent %p\n", __FUNCTION__, pint->fpga_tile, pint->fpga_number, handler, cb, parent);
+	PORTAL_PRINTF("%s: **initialize portal_b%dt%dp%d handler %p cb %p parent %p\n", __FUNCTION__, pint->board_number, pint->fpga_tile, pint->fpga_number, handler, cb, parent);
     if (!transport) {
         // Use defaults for transport handling methods
 #ifdef SIMULATION
@@ -97,7 +104,7 @@ void init_portal_internal(PortalInternal *pint, int id, int tile,
     pint->transport = transport;
     rc = pint->transport->init(pint, param);
     if (rc != 0) {
-        PORTAL_PRINTF("%s: failed to initialize Portal portal_%d_%d\n", __FUNCTION__, pint->fpga_tile, pint->fpga_number);
+        PORTAL_PRINTF("%s: failed to initialize Portal portal_b%dt%dp%d\n", __FUNCTION__, pint->board_number, pint->fpga_tile, pint->fpga_number);
 #ifndef __KERNEL__
         exit(1);
 #endif
@@ -316,6 +323,13 @@ static void initPortalHardwareOnce(void)
 	  argv[ind++] = (char*)simulator_vcd_name;
 	}
 #endif
+#if defined(BOARD_cvc)
+	const char *exetype = "cvcsim";
+	if (simulator_dump_vcd) {
+	  //argv[ind++] = (char*)"-t";
+	  //argv[ind++] = (char*)simulator_vcd_name;
+	}
+#endif
 #if defined(BOARD_xsim)
 	const char *exetype = "xsim";
 	bindir = 0; // the simulation driver is found in $PATH
@@ -374,6 +388,9 @@ if (trace_portal) fprintf(stderr, "[%s:%d] LD_LIBRARY_PATH %s *******\n", __FUNC
 #endif // !__arm__
 #ifdef __arm__
 	  argv[ind++] = (char *)"-x"; // program via /dev/xdevcfg
+#endif
+#ifdef __aarch64__
+	  argv[ind++] = (char *)"-m"; // program via fpga manager
 #endif
 	  argv[ind++] = filename;
           errno = 0;
@@ -521,8 +538,10 @@ printk("[%s:%d] start %lx end %lx len %x\n", __FUNCTION__, __LINE__, (long)start
 	}
 	asm volatile("mfence");
     }
+#elif defined(__aarch64__)
+    // TBD
 #else
-#error("dCAcheFlush not defined for unspecified architecture")
+#error("portalCacheFlush not defined for unspecified architecture")
 #endif
     if(trace_portal)
         PORTAL_PRINTF("dcache flush\n");

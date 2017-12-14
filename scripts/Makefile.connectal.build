@@ -98,7 +98,7 @@ BSCOPTFLAGS= -show-schedule -aggressive-conditions -show-method-bvi
 BSCPATHFLAGS=  -bdir $(DTOP)/obj -vdir $(DTOP)/verilog -simdir $(DTOP)/obj -info-dir $(DTOP)/obj
 BSCFLAGS_COMMON += $(BSCWARNFLAGS) $(BSCOPTFLAGS) $(BSCPATHFLAGS) --wait-for-license
 PROF_FLAGS= #-pg
-export SIM_CFLAGS= $(CFLAGS_PROJECT) -fPIC -Ijni -I $(CONNECTALDIR)/cpp -I $(CONNECTALDIR) -O $(PROF_FLAGS)
+export SIM_CFLAGS= $(CFLAGS_PROJECT) -fPIC -Ijni -I $(CONNECTALDIR)/cpp -I $(CONNECTALDIR) -I $(CONNECTALDIR)/lib/json -O $(PROF_FLAGS)
 export SIM_CXXFLAGS= $(CXXFLAGS_PROJECT) -fPIC -Ijni -I $(CONNECTALDIR)/cpp -I $(CONNECTALDIR) -O $(PROF_FLAGS)
 SIM_CXX_COMMON = $(addprefix $(CONNECTALDIR)/cpp/, TlpReplay.cpp BsimDma.cpp sock_utils.c portalPrintf.c XsimTop.cpp poller.cpp transportSocket.c transportHardware.c transportXsim.c portal.c)
 SIM_CXX_LOCAL = $(SIM_CXX_COMMON) $(DTOP)/jni/XsimMsgRequest.c $(DTOP)/jni/XsimMsgIndication.c $(DTOP)/jni/GeneratedCppCallbacks.cpp
@@ -197,8 +197,12 @@ else
 ifneq ($(SIMULATION),)
 	@echo "not zipping xilinx"
 else
+ifneq ($(AWSF1),)
+	@echo "not zipping awsf1"
+else
 	@echo "zipping xilinx"
 	gzip -c hw/mkTop.bin > bin/mkTop.bin.gz
+endif # AWSF1
 endif #xsim
 endif #android
 else #!xilinx
@@ -290,7 +294,17 @@ endif
 	xelab -timescale 1ns/1ps --stats $(XVLOGDEFINES) -cc gcc $(SVLOG) --dpiheader XsimTop.h --debug wave -L unisim -L unifast -L unimacro work.xsimtop -sv_lib xsimtop || echo xelab failed
 	true
 
-vlsim: $(DTOP)/obj_dir/vlsim
+CVC64 ?= cvc64
+CVC_DEFINES = $(addprefix +define+, $(BSVDEFINES_LIST))
+CVC_TRACE_ARGS = +printstats +fstvars
+CVC_ARGS ?= 
+CVC_SOURCES = $(addprefix -v , $(wildcard $(BLUESPECDIR)/Verilog/*.v $(DTOP)/verilog/*.v))
+cvcsim: bin/cvcsim
+
+bin/cvcsim: $(DTOP)/bin/libconnectal-sim.so verilog bin/cvcsim
+	$(CVC64) $(CVC_DEFINES) $(CVC_ARGS) -y $(CONNECTALDIR)/verilog $(CVC_SOURCES) -sv $(CONNECTALDIR)/verilog/XsimSink.sv  $(CONNECTALDIR)/verilog/XsimSource.sv $(CONNECTALDIR)/verilog/XsimDmaReadWrite.sv -sv $(CONNECTALDIR)/verilog/xsimtop.sv -sv_lib $(DTOP)/bin/libconnectal-sim.so -o bin/cvcsim
+
+vlsim:  $(DTOP)/obj_dir/vlsim
 
 VERILATOR_ARGS?= -O3 -CFLAGS "-I$(CONNECTALDIR)/cpp -I$(DTOP)/jni -O $(PROF_FLAGS)" -LDFLAGS "-O $(PROF_FLAGS)" --profile-cfuncs --output-split 20000
 VERILATOR_ARGS += $(VERILATOR_PROJECT_ARGS)
@@ -342,6 +356,7 @@ $(2): $(3) $(4) $(5)
 	@echo BSCVERILOG [$(1)]
 	cd generatedbsv; MAKEFLAGS="" $(RUN_BSC) -g $(1) $(3)
 	$(Q)sed -i 's|// On .*|// timestamp removed|' verilog/*.v
+	$(Q)sed -i 's|Prelude_inst_changeSpecialWires|csw|g' verilog/*.v
 	$(Q)sed -i 's|  reg.*PROBE[,;]|(* mark_debug="true" *)&|' verilog/*.v 
 	$(Q)sed -i 's|  wire.*PROBE[,;]|(* mark_debug="true" *)&|' verilog/*.v 
 	$(Q)sed -i 's|  wire.*PROBE_VALID[,;]|(* mark_debug="true" *)&|' verilog/*.v 
@@ -359,6 +374,7 @@ $(VFILE): $(addprefix obj/, $(patsubst %.bsv, %.bo, $(notdir $(TOPBSVFILE))))
 	@echo BSCVERILOG [$(VFILE)]
 	$(Q)cd generatedbsv; MAKEFLAGS="" $(RUN_BSC) -g $(MKTOP) $(TOPBSVFILE)
 	$(Q)sed -i 's|// On .*|// timestamp removed|' verilog/*.v
+	$(Q)sed -i 's|Prelude_inst_changeSpecialWires|csw|g' verilog/*.v
 	$(Q)sed -i 's|  reg.*PROBE[,;]|(* mark_debug="true" *)&|' verilog/*.v 
 	$(Q)sed -i 's|  wire.*PROBE[,;]|(* mark_debug="true" *)&|' verilog/*.v 
 	$(Q)sed -i 's|  wire.*PROBE_VALID[,;]|(* mark_debug="true" *)&|' verilog/*.v 
@@ -377,6 +393,9 @@ bsim: prepare_bin_target $(DTOP)/bin/libconnectal-sim.so obj/mkXsimTop.ba
 	$(Q)cd generatedbsv; MAKEFLAGS="" $(RUN_BSC) -O -L $(DTOP)/bin  -l connectal-sim -sim -e $(MKTOP) -o bsim $(DTOP)/obj/*.ba
 	g++ -O -g -o bin/bsim -Iobj -I$(BLUESPECDIR)/Bluesim obj/*.o $(CONNECTALDIR)/cpp/bluesim_main.cxx -L$(BLUESPECDIR)/Bluesim/g++4_64 -lbskernel -lbsprim -lpthread -L bin -lconnectal-sim
 
+
+build/checkpoints/to_aws/mkTop.SH_CL_routed.dcp: verilog
+	CONNECTALDIR=$(CONNECTALDIR) $(CONNECTALDIR)/scripts/aws/build.sh
 
 syntax.timestamp: $(BSVFILES)
 	@#$syntax.py uses environment variables: V INTERFACES BSVDEFINES_LIST DTOP DUT_NAME

@@ -27,7 +27,7 @@ import GetPutWithClocks::*;
 import CtrlMux::*;
 import Portal::*;
 import ConnectalConfig::*;
-import MemTypes::*;
+import ConnectalMemTypes::*;
 import PcieHost ::*;
 `ifndef SIMULATION
 import PCIEWRAPPER          ::*;
@@ -105,7 +105,7 @@ module mkConnectalTop(ConnectalTop);
    ZynqPcieTestRequestWrapper zynqPcieTestRequestWrapper <- mkZynqPcieTestRequestWrapper(IfcNames_ZynqPcieTestRequest,zynqPcieTest.request);
 
    // Connect the exposed BRAM client to the trace BRAM server in the PcieHost
-   mkConnectionWithClocks(zynqPcieTest.traceBramClient, host.tpciehost.traceBramServer);
+   mkConnectionWithClocks2(zynqPcieTest.traceBramClient, host.tpciehost.traceBramServer);
 
    // send the value of the lnk_up signal from the PCIE endpoint to the Zynq portal clock domain
    rule updateLinkBit;

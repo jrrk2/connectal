@@ -119,7 +119,7 @@ ifeq ($(shell uname), Darwin)
 else
 	if [ -f /usr/bin/yum ] ; then yum install gmp strace python-argparse python-ply python-gevent; else apt-get install libgmp10 strace python-ply python-gevent; fi
 	if [ -f /usr/lib/x86_64-linux-gnu/libgmp.so ] ; then ln -sf /usr/lib/x86_64-linux-gnu/libgmp.so /usr/lib/x86_64-linux-gnu/libgmp.so.3 ; fi
-	if [ -f /usr/lib64/libgmp.so.10 ] ; then ln -s /usr/lib64/libgmp.so.10 /usr/lib64/libgmp.so.3; fi
+	if [ ! -f /usr/lib64/libgmp.so.3 ] && [ -f /usr/lib64/libgmp.so.10 ] ; then ln -s /usr/lib64/libgmp.so.10 /usr/lib64/libgmp.so.3; fi
 endif
 
 install-python-example-dependences:
@@ -204,19 +204,13 @@ connectalspi-adb:
 	adb -s $(RUNIP):$(RUNPORT) shell insmod /mnt/sdcard/connectalspi.ko
 	adb -s $(RUNIP):$(RUNPORT) shell chmod 777 /dev/spi*
 
-distclean:
+distclean: pciedrivers-clean
 	for archname in $(allarchlist) ; do  \
 	   rm -rf examples/*/"$$archname" tests/*/"$$archname"; \
 	done
-	rm -rf drivers/*/.tmp_versions tests/memread_manual/kernel/.tmp_versions/
 	rm -rf pcie/connectalutil/connectalutil tests/memread_manual/kernel/bsim_relay
 	rm -rf out/ exit.status cpp/*.o scripts/*.pyc
 	rm -rf tests/*/train-images-idx3-ubyte examples/*/train-images-idx3-ubyte
-	rm -f drivers/pcieportal/.*.o.cmd drivers/pcieportal/.*.ko.cmd
-	rm -f drivers/portalmem/.*.o.cmd drivers/portalmem/.*.ko.cmd
-	rm -f drivers/zynqportal/.*.o.cmd drivers/zynqportal/.*.ko.cmd
 	rm -rf doc/library/build/ examples/rbm/datasets/
 	rm -f doc/library/source/devguide/connectalbuild-1.png
-	rm -f drivers/*/driver_signature_file.h
-	rm -f drivers/pcieportal/pcieportal_signature_file.h drivers/portalmem/portalmem_signature_file.h
 	rm -rf tests/partial/variant2

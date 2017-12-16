@@ -22,6 +22,14 @@ if [info exists AWSF1_CL_DEBUG_BRIDGE] {
 } else {
     set AWSF1_CL_DEBUG_BRIDGE 0
 }
+if [info exists AWSF1_SYNC_FIFO] {
+    if {$AWSF1_SYNC_FIFO == ""} {
+        set AWSF1_SYNC_FIFO 1
+    }
+    puts "AWSF1_SYNC_FIFO=$AWSF1_SYNC_FIFO"
+} else {
+    set AWSF1_SYNC_FIFO 0
+}
 
 
 ########################################
@@ -54,6 +62,14 @@ if {$AWSF1_CL_DEBUG_BRIDGE} {
 	     "$CONNECTALDIR/out/awsf1/ila_connectal_1/ila_connectal_1.xci"
 	     "$CONNECTALDIR/out/awsf1/ila_connectal_2/ila_connectal_2.xci"
 	    ]
+}
+
+if {$AWSF1_SYNC_FIFO} {
+    puts "Reading sync fifo IP"
+    read_ip [list \
+        "$CONNECTALDIR/out/awsf1/sync_fifo_w32_d16/sync_fifo_w32_d16.xci" \
+        "$CONNECTALDIR/out/awsf1/sync_bram_fifo_w36_d512/sync_bram_fifo_w36_d512.xci" \
+    ]
 }
 
 #---- End of section replaced by User ----

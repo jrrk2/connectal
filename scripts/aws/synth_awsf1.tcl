@@ -30,6 +30,14 @@ if [info exists AWSF1_SYNC_FIFO] {
 } else {
     set AWSF1_SYNC_FIFO 0
 }
+if [info exists AWSF1_FPU] {
+    if {$AWSF1_FPU == ""} {
+        set AWSF1_FPU 1
+    }
+    puts "AWSF1_FPU=$AWSF1_FPU"
+} else {
+    set AWSF1_FPU 0
+}
 
 
 ########################################
@@ -69,6 +77,15 @@ if {$AWSF1_SYNC_FIFO} {
     read_ip [list \
         "$CONNECTALDIR/out/awsf1/sync_fifo_w32_d16/sync_fifo_w32_d16.xci" \
         "$CONNECTALDIR/out/awsf1/sync_bram_fifo_w36_d512/sync_bram_fifo_w36_d512.xci" \
+    ]
+}
+
+if {$AWSF1_FPU} {
+    puts "Reading FPU IP"
+    read_ip [list \
+        "$CONNECTALDIR/out/awsf1/sync_fp_fma/sync_fp_fma.xci" \
+        "$CONNECTALDIR/out/awsf1/sync_fp_div/sync_fp_div.xci" \
+        "$CONNECTALDIR/out/awsf1/sync_fp_sqrt/sync_fp_sqrt.xci" \
     ]
 }
 

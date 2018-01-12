@@ -83,9 +83,9 @@ if {$AWSF1_SYNC_FIFO} {
 if {$AWSF1_FPU} {
     puts "Reading FPU IP"
     read_ip [list \
-        "$CONNECTALDIR/out/awsf1/sync_fp_fma/sync_fp_fma.xci" \
-        "$CONNECTALDIR/out/awsf1/sync_fp_div/sync_fp_div.xci" \
-        "$CONNECTALDIR/out/awsf1/sync_fp_sqrt/sync_fp_sqrt.xci" \
+        "$CONNECTALDIR/out/awsf1/fp_fma/fp_fma.xci" \
+        "$CONNECTALDIR/out/awsf1/fp_div/fp_div.xci" \
+        "$CONNECTALDIR/out/awsf1/fp_sqrt/fp_sqrt.xci" \
     ]
 }
 

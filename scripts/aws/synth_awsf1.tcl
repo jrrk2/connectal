@@ -38,6 +38,14 @@ if [info exists AWSF1_FPU] {
 } else {
     set AWSF1_FPU 0
 }
+if [info exists AWSF1_INT_MULDIV] {
+    if {$AWSF1_INT_MULDIV == ""} {
+        set AWSF1_INT_MULDIV 1
+    }
+    puts "AWSF1_INT_MULDIV=$AWSF1_INT_MULDIV"
+} else {
+    set AWSF1_INT_MULDIV 0
+}
 
 
 ########################################
@@ -86,6 +94,16 @@ if {$AWSF1_FPU} {
         "$CONNECTALDIR/out/awsf1/fp_fma/fp_fma.xci" \
         "$CONNECTALDIR/out/awsf1/fp_div/fp_div.xci" \
         "$CONNECTALDIR/out/awsf1/fp_sqrt/fp_sqrt.xci" \
+    ]
+}
+
+if {$AWSF1_INT_MULDIV} {
+    puts "Reading int mul div IP"
+    read_ip [list \
+        "$CONNECTALDIR/out/awsf1/int_mul_signed/int_mul_signed.xci" \
+        "$CONNECTALDIR/out/awsf1/int_mul_unsigned/int_mul_unsigned.xci" \
+        "$CONNECTALDIR/out/awsf1/int_mul_signed_unsigned/int_mul_signed_unsigned.xci" \
+        "$CONNECTALDIR/out/awsf1/int_div_unsigned/int_div_unsigned.xci" \
     ]
 }
 

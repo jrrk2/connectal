@@ -296,6 +296,9 @@ if {$implement} {
    if {$route} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Routing design";
       impl_step route_design $TOP $route_options $route_directive $route_preHookTcl $route_postHookTcl
+      # Also report hierarchical utilization
+      report_utilization -hierarchical -pblock [get_pblocks pblock_CL] \
+        -file $CL_DIR/build/reports/${timestamp}.hier_utilization_route_design.rpt
    }
 
    ##############################
@@ -306,6 +309,9 @@ if {$implement} {
    if {$route_phys_opt && $SLACK > -0.400 && $SLACK < 0} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Running post-route optimization";
       impl_step route_phys_opt_design $TOP $post_phys_options $post_phys_directive $post_phys_preHookTcl $post_phys_postHookTcl
+      # Also report hierarchical utilization
+      report_utilization -hierarchical -pblock [get_pblocks pblock_CL] \
+        -file $CL_DIR/build/reports/${timestamp}.hier_utilization_route_phys_opt_design.rpt
    }
 
    ##############################
@@ -313,6 +319,10 @@ if {$implement} {
    ##############################
    # Report final timing
    report_timing_summary -file $CL_DIR/build/reports/${timestamp}.SH_CL_final_timing_summary.rpt
+
+   # Report untilization
+   report_utilization -file $CL_DIR/build/reports/${timestamp}.SH_CL_final_utilization.rpt
+   report_utilization -hierarchical -file $CL_DIR/build/reports/${timestamp}.SH_CL_final_hier_utilization.rpt
 
    # This is what will deliver to AWS
    puts "AWS FPGA: ([clock format [clock seconds] -format %T]) - Writing final DCP to to_aws directory.";

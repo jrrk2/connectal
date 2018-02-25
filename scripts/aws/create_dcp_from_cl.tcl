@@ -296,9 +296,6 @@ if {$implement} {
    if {$route} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Routing design";
       impl_step route_design $TOP $route_options $route_directive $route_preHookTcl $route_postHookTcl
-      # Also report hierarchical utilization
-      report_utilization -hierarchical -pblock [get_pblocks pblock_CL] \
-        -file $CL_DIR/build/reports/${timestamp}.hier_utilization_route_design.rpt
    }
 
    ##############################
@@ -309,9 +306,6 @@ if {$implement} {
    if {$route_phys_opt && $SLACK > -0.400 && $SLACK < 0} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Running post-route optimization";
       impl_step route_phys_opt_design $TOP $post_phys_options $post_phys_directive $post_phys_preHookTcl $post_phys_postHookTcl
-      # Also report hierarchical utilization
-      report_utilization -hierarchical -pblock [get_pblocks pblock_CL] \
-        -file $CL_DIR/build/reports/${timestamp}.hier_utilization_route_phys_opt_design.rpt
    }
 
    ##############################

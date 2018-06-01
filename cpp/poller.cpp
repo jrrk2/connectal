@@ -47,7 +47,7 @@ PortalPoller::PortalPoller(int autostart)
     fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
     addFd(pipefd[0]);
 
-    timeout = -1; // wait for interrupt
+    timeout = 100; // wait for interrupt
 #if defined(SIMULATION)
     timeout = 100;
 #endif

@@ -40,6 +40,7 @@
 #include <linux/poll.h>         /* poll_table, etc. */
 #include <asm/uaccess.h>        /* copy_to_user, copy_from_user */
 #include <linux/dma-buf.h>
+#include "driverversion.h"
 
 #include "pcieportal.h"
 #define CONNECTAL_DRIVER_CODE
@@ -450,7 +451,6 @@ static int board_activate(int activate, tBoard *this_board, struct pci_dev *dev)
 	int fpn = 0;
 	int num_tiles, tile_index;
 	void __iomem *ptile;
-	void *portal_base;
 
 printk("[%s:%d]\n", __FUNCTION__, __LINE__);
         for (i = 0; i < MAX_NUM_PORTALS; i++)
@@ -461,6 +461,7 @@ printk("[%s:%d]\n", __FUNCTION__, __LINE__);
                 }
         if (activate) {
 		dev_t this_device_number;
+		void *portal_base = 0;
    	        for (i = 0; i < MAX_NUM_PORTALS; i++)
 		  this_board->portal[i].device_name = -1;
    	        for (i = 0; i < MAX_NUM_PORTALS; i++)
@@ -527,6 +528,11 @@ printk("[%s:%d]\n", __FUNCTION__, __LINE__);
 				err = -EINVAL;
 				goto BARS_MAPPED_label;
 			}
+			// check for xdma on bar2
+		} else {
+			printk("  xdma block ID %x\n", ioread32(this_board->bar2io + 0x0000));
+			printk("   irq block ID %x\n", ioread32(this_board->bar2io + 0x2000));
+			printk("config block ID %x\n", ioread32(this_board->bar2io + 0x3000));
 		}
                 /* set DMA mask */
                 if (pci_set_dma_mask(dev, DMA_BIT_MASK(48))) {
@@ -537,7 +543,7 @@ printk("[%s:%d]\n", __FUNCTION__, __LINE__);
                 /* enable MSIX */
 		for (i = 0; i < num_entries; i++)
 			msix_entries[i].entry = i;
-		if (pci_enable_msix(dev, msix_entries, num_entries)) {
+		if ((num_entries = pci_enable_msix_range(dev, msix_entries, num_entries, num_entries)) < 0) {
 			printk(KERN_ERR "%s: Failed to setup MSIX interrupts\n", DEV_NAME);
 			err = -EFAULT;
                         goto BARS_MAPPED_label;
@@ -560,11 +566,14 @@ printk("[%s:%d]\n", __FUNCTION__, __LINE__);
 		iowrite32(0, this_board->bar0io + CSR_MSIX_MASKED);
                 pci_set_master(dev); /* enable PCI bus master */
 		
-		void *portal_base = 0;
 		if (this_board->bar4io) {
 			portal_base = this_board->bar0io;
 			ptile = this_board->bar0io;
 			printk("bar0io[0]=%08x\n", *(int *)this_board->bar0io);
+
+			// enable user interrupts via XDMA block in AWS F1 Shell
+			iowrite32(0xFFFF, this_board->bar2io + 0x2000 + 4);
+			printk("enabled user interrupts in XDMA %x\n", ioread32(this_board->bar2io + 0x2000 + 4));
 
 		} else {
 			portal_base = this_board->bar2io;

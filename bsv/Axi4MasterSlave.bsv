@@ -41,8 +41,10 @@ typedef struct {
 } Axi4ReadRequest#(numeric type addrWidth, numeric type idWidth) deriving (Bits);
 
 function Bit#(3) axiBusSize(busWidthType busWidth) provisos (Eq#(busWidthType),Literal#(busWidthType));
-   if (busWidth == 32)
-      return 3'b010; // 3'b010: 32bit, 3'b011: 64bit, 3'b100: 128bit
+   if (busWidth == 16)
+      return 3'b001;
+   else if (busWidth == 32)
+      return 3'b010;
    else if (busWidth == 64)
       return 3'b011;
    else if (busWidth == 128)
@@ -51,10 +53,10 @@ function Bit#(3) axiBusSize(busWidthType busWidth) provisos (Eq#(busWidthType),L
       return 3'b101;
    else if (busWidth == 512)
       return 3'b110;
-//   else if (busWidth == 1024)
-//      return 3'b111;
+   else if (busWidth == 1024)
+      return 3'b111;
    else
-      return 0;
+      return 3'b000;
 endfunction
 
 function Bit#(3) axiBusSizeBytes(busWidthType busWidth) provisos (Eq#(busWidthType),Literal#(busWidthType),Arith#(busWidthType));
@@ -133,7 +135,7 @@ endinstance
 
 function Axi4ReadRequest#(axiAddrWidth,idWidth) toAxi4ReadRequest(PhysMemRequest#(addrWidth,dataBusWidth) req)
    provisos (Add#(axiAddrWidth,a__,addrWidth)
-	     ,Add#(b__, idWidth, 6));
+	     ,Add#(b__, idWidth, MemTagSize));
    Axi4ReadRequest#(axiAddrWidth,idWidth) axireq  = unpack(0);
    axireq.address = truncate(req.addr);
    axireq.id   = truncate(req.tag);
@@ -150,7 +152,7 @@ function Axi4ReadRequest#(axiAddrWidth,idWidth) toAxi4ReadRequest(PhysMemRequest
 endfunction
 function Axi4WriteRequest#(axiAddrWidth,idWidth) toAxi4WriteRequest(PhysMemRequest#(addrWidth,dataBusWidth) req)
    provisos (Add#(axiAddrWidth,a__,addrWidth)
-	     ,Add#(b__, idWidth, 6));
+	     ,Add#(b__, idWidth, MemTagSize));
    Axi4WriteRequest#(axiAddrWidth,idWidth) axireq  = unpack(0);
    axireq.address = truncate(req.addr);
    axireq.id   = truncate(req.tag);
@@ -167,7 +169,7 @@ function Axi4WriteRequest#(axiAddrWidth,idWidth) toAxi4WriteRequest(PhysMemReque
 endfunction
 
 instance MkPhysMemSlave#(Axi4Slave#(axiAddrWidth,dataWidth,idWidth),addrWidth,dataWidth)
-      provisos (Add#(axiAddrWidth,a__,addrWidth),Add#(b__, idWidth, 6));
+      provisos (Add#(axiAddrWidth,a__,addrWidth),Add#(b__, idWidth, MemTagSize));
    module mkPhysMemSlave#(Axi4Slave#(axiAddrWidth,dataWidth,idWidth) axiSlave)(PhysMemSlave#(addrWidth,dataWidth));
       FIFOF#(PhysMemRequest#(addrWidth,dataWidth)) arfifo <- mkFIFOF();
       FIFOF#(MemData#(dataWidth)) rfifo <- mkFIFOF();

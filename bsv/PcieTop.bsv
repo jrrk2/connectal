@@ -27,6 +27,8 @@ import Connectable       :: *;
 import ClientServer      :: *;
 import DefaultValue      :: *;
 
+import SyncFifo::*; // various choices of sync FIFOs
+
 import ConnectalConfig::*;
 `include "ConnectalProjectConfig.bsv"
 import PcieSplitter      :: *;

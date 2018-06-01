@@ -25,7 +25,8 @@ import Counter           ::*;
 import Clocks            ::*;
 import MIMO              ::*;
 
-import ConnectalBramFifo ::*;
+//import ConnectalBramFifo ::*;
+import SyncFifo::*; // various choices of sync FIFOs
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +56,20 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
    ////////////////////////////////////////////////////////////////////////////////
    let clock <- exposeCurrentClock();
    let reset <- exposeCurrentReset();
-   Vector#(max, FIFOF#(t))         vfStorage           <- replicateM(mkDualClockBramFIFOF(clock, reset, clock, reset));
+   //Vector#(max, FIFOF#(t))         vfStorage           <- replicateM(mkDualClockBramFIFOF(clock, reset, clock, reset));
+   Vector#(max, SyncFIFOIfc#(t)) vfStorage_sync <- replicateM(mkSyncBramFifo(512, clock, reset, clock, reset));
+   function FIFOF#(t) toFIFOF(SyncFIFOIfc#(t) ifc);
+       return (interface FIFOF;
+           method notFull = ifc.notFull;
+           method enq = ifc.enq;
+           method notEmpty = ifc.notEmpty;
+           method deq = ifc.deq;
+           method first = ifc.first;
+           method clear = noAction;
+       endinterface);
+   endfunction
+   Vector#(max, FIFOF#(t)) vfStorage = map(toFIFOF, vfStorage_sync);
+
    Counter#(32)                    rDataCount          <- mkCounter(0);
    
    Reg#(LUInt#(max))               rWriteIndex         <- mkReg(0);

@@ -201,12 +201,12 @@ QUARTUS_SH=$(shell which quartus_sh)
 ifeq ($(NEED_XILINX_PCIE_$(BOARD)),1)
 #    FPGAMAKE_CONNECTALFLAGS += -P mkPcieEndpointX7 -P mkPcieHost
     CONNECTALFLAGS += --xci=$(IPDIR)/$(BOARD)/pcie_7x_0/pcie_7x_0.xci
-    CONNECTALFLAGS += --bscflags="+RTS -K46777216 -RTS"
+#    CONNECTALFLAGS += --bscflags="+RTS -K46777216 -RTS"
 endif
 ifeq ($(PCIEGEN),2)
     FPGAMAKE_CONNECTALFLAGS += -P mkPcieHost
     CONNECTALFLAGS += --xci=$(IPDIR)/$(BOARD)/pcie2_7x_0/pcie2_7x_0.xci
-    CONNECTALFLAGS += --bscflags="+RTS -K46777216 -RTS"
+#    CONNECTALFLAGS += --bscflags="+RTS -K46777216 -RTS"
 endif
 
 ifeq ($(NEED_XILINX_PCIE_$(BOARD)),3)

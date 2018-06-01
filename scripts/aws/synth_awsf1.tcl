@@ -22,6 +22,30 @@ if [info exists AWSF1_CL_DEBUG_BRIDGE] {
 } else {
     set AWSF1_CL_DEBUG_BRIDGE 0
 }
+if [info exists AWSF1_SYNC_FIFO] {
+    if {$AWSF1_SYNC_FIFO == ""} {
+        set AWSF1_SYNC_FIFO 1
+    }
+    puts "AWSF1_SYNC_FIFO=$AWSF1_SYNC_FIFO"
+} else {
+    set AWSF1_SYNC_FIFO 0
+}
+if [info exists AWSF1_FPU] {
+    if {$AWSF1_FPU == ""} {
+        set AWSF1_FPU 1
+    }
+    puts "AWSF1_FPU=$AWSF1_FPU"
+} else {
+    set AWSF1_FPU 0
+}
+if [info exists AWSF1_INT_MULDIV] {
+    if {$AWSF1_INT_MULDIV == ""} {
+        set AWSF1_INT_MULDIV 1
+    }
+    puts "AWSF1_INT_MULDIV=$AWSF1_INT_MULDIV"
+} else {
+    set AWSF1_INT_MULDIV 0
+}
 
 
 ########################################

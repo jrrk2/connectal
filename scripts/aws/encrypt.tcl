@@ -55,6 +55,24 @@ foreach {dir} "$BLUESPECDIR/Verilog $BLUESPECDIR/Verilog.Vivado $CONNECTALDIR/ve
     }
 }
 
+# copy verilog folders specified by --verilog. These folders are in env
+# VERILOG_PATH, but we should ignore the first item (verilog), and the last
+# 4 items (2 connnectal verilog folders and 2 bluespec verilog folders)
+set user_verilog_dirs [split [regex -all -inline {\S+} $::env(VERILOG_PATH)]]
+puts "Finding user verilog direcotry from VERILOG_PATH: $user_verilog_dirs"
+set user_verilog_dirs [lreplace $user_verilog_dirs 0 0]
+set user_verilog_dirs [lreplace $user_verilog_dirs end end]
+set user_verilog_dirs [lreplace $user_verilog_dirs end end]
+set user_verilog_dirs [lreplace $user_verilog_dirs end end]
+set user_verilog_dirs [lreplace $user_verilog_dirs end end]
+foreach {dir} $user_verilog_dirs {
+    puts "Looking in user verilog directory $dir"
+    foreach {file} [glob -nocomplain -- $dir/*.v $dir/*.vh $dir/*.sv] {
+        puts "Copying file $file"
+        file copy -force $file $TARGET_DIR
+    }
+}
+
 #---- End of section replaced by Developr ---
 
 # Make sure files have write permissions for the encryption

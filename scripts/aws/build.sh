@@ -44,7 +44,9 @@ pushd ~/aws-fpga
 source ./hdk_setup.sh
 popd
 
-echo '#placeholder' > ../constraints/cl_pnr_user.xdc
+# enable cascade of MMCM, i.e., use clk_main_a0 to generate new clk
+#echo '#placeholder' > ../constraints/cl_pnr_user.xdc
+echo 'set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN [get_nets SH/kernel_clks_i/clkwiz_sys_clk/inst/CLK_CORE_DRP_I/clk_inst/clk_out1]' > ../constraints/cl_pnr_user.xdc
 echo '#placeholder' > ../constraints/cl_synth_user.xdc
 
 ~/aws-fpga/hdk/common/shell_stable/build/scripts/aws_build_dcp_from_cl.sh -ignore_memory_requirement -notify -foreground

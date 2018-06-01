@@ -56,6 +56,10 @@ if {$AWSF1_CL_DEBUG_BRIDGE} {
 	    ]
 }
 
+foreach xcifile $::env(XCIFILES) {
+    read_ip $xcifile
+}
+
 #---- End of section replaced by User ----
 
 puts "AWS FPGA: Reading AWS Shell design";

@@ -33,14 +33,23 @@ exec rm -f $TARGET_DIR/*
 
 ## Change file names and paths below to reflect your CL area.  DO NOT include AWS RTL files.
 
+foreach {dir} [lreverse $::env(VERILOG_PATH)] {
+    puts "VERILOG_PATH $dir"
+    foreach {file} [glob -nocomplain -- $dir/verilog/*.v $dir/verilog/*.sv $dir/verilog/*.vh] {
+	puts "file copy $file"
+	file copy -force $file            $TARGET_DIR
+    }
+}
+
 foreach {file} [glob -nocomplain -- $CL_DIR/verilog/*.v $CL_DIR/verilog/*.sv $CL_DIR/verilog/*.vh $CL_DIR/generatedbsv/ConnectalProjectConfig.bsv] {
+    puts "file copy $file"
     file copy -force $file            $TARGET_DIR
 }
 foreach {dir} "$BLUESPECDIR/Verilog $BLUESPECDIR/Verilog.Vivado $CONNECTALDIR/verilog $HDK_SHELL_DIR/design/interfaces" {
     puts "Looking in directory $dir"
-    foreach {pat} {FIFO BRAM Reg Counter cl_ unused aws} {
+    foreach {pat} {FIFO BRAM Reg Counter Reset cl_ unused aws} {
 	foreach {file} [glob -nocomplain -- $dir/*$pat*.v $dir/*$pat*.vh $dir/*$pat*.inc $dir/*$pat*.sv] {
-	    puts "Copying file $file"
+	    puts "file copy $file"
 	    file copy -force $file            $TARGET_DIR
 	}
     }

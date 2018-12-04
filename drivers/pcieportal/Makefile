@@ -23,8 +23,7 @@ export BS_MOD_DIR=$(DESTDIR)/lib/modules/$(KVERSION)/connectal
 .PHONY: default
 default: pcieportal.ko ../portalmem/portalmem.ko
 
-EXTRA_CFLAGS := -I$(CONNECTALDIR)/drivers/pciportal -I$(CONNECTALDIR)/cpp -I$(CONNECTALDIR) -I$(CONNECTALDIR)/drivers/portalmem -I$(CONNECTALDIR)/generated/cpp \
-	-DDRIVER_VERSION="\"$(VERSION)\""
+EXTRA_CFLAGS := -I$(CONNECTALDIR)/drivers/pciportal -I$(CONNECTALDIR)/cpp -I$(CONNECTALDIR) -I$(CONNECTALDIR)/drivers/portalmem -I$(CONNECTALDIR)/generated/cpp
 cflags-y += -I$(PWD)
 
 ../portalmem/portalmem.ko: ../portalmem/portalmem.c
@@ -34,7 +33,10 @@ cflags-y += -I$(PWD)
 pcieportal_signature_file.h:
 	md5sum *.c ../../generated/cpp/*.c | grep -v mod.c | sed -f ../../scripts/driver_signature.sed >pcieportal_signature_file.h
 
-pcieportal.ko: pcieportal.c pcieportal.h pcieportal_signature_file.h
+driverversion.h:
+	VERSION=$(VERSION) echo "#define DRIVER_VERSION \"$$VERSION\"" > driverversion.h
+
+pcieportal.ko: pcieportal.c pcieportal.h pcieportal_signature_file.h driverversion.h
 	$(Q)$(MAKE) -C $(KROOT) M=$(PWD) modules
 
 .PHONY: modules_check
@@ -80,13 +82,15 @@ insmod: rmmod
 
 .PHONY: install-dkms
 install-dkms: pcieportal_signature_file.h
+	rm -f driverversion.h
+	make driverversion.h
 	make -C ../portalmem portalmem_signature_file.h
 	mkdir -p $(DESTDIR)$(PREFIX)/src/$(PKG_NAME)-$(VERSION)
 	sed "s/@VERSION@/$(VERSION)/" dkms.conf | sed "s/@PKG_NAME@/$(PKG_NAME)/" > dkms.conf.out
 	sed "s/@VERSION@/$(VERSION)/" Makefile.dkms > Makefile.dkms.out
 	cp -fv dkms.conf.out $(DESTDIR)$(PREFIX)/src/$(PKG_NAME)-$(VERSION)/dkms.conf
 	cp -fv Makefile.dkms.out $(DESTDIR)$(PREFIX)/src/$(PKG_NAME)-$(VERSION)/Makefile
-	cp -fv pcieportal_signature_file.h pcieportal.c pcieportal.h $(DESTDIR)$(PREFIX)/src/$(PKG_NAME)-$(VERSION)
+	cp -fv pcieportal_signature_file.h pcieportal.c pcieportal.h driverversion.h $(DESTDIR)$(PREFIX)/src/$(PKG_NAME)-$(VERSION)
 	cp -fv ../../cpp/*.[ch] ../portalmem/*.[ch] \
 	../../generated/cpp/*.[ch] \
 	$(DESTDIR)$(PREFIX)/src/$(PKG_NAME)-$(VERSION)

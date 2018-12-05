@@ -47,7 +47,9 @@ PortalPoller::PortalPoller(int autostart)
     fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
     addFd(pipefd[0]);
 
-    timeout = -1; // wait for interrupt
+    //timeout = -1; // wait for interrupt
+    // [sizhuo] interrupt not working on AWS 1.4, poll every 1ms
+    timeout = 1;
 #if defined(SIMULATION)
     timeout = 100;
 #endif

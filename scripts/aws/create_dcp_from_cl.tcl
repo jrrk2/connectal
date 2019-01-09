@@ -213,6 +213,11 @@ puts "AWS FPGA: ([clock format [clock seconds] -format %T]) Calling aws_gen_clk_
 
 source $HDK_SHELL_DIR/build/scripts/aws_gen_clk_constraints.tcl
 
+# The following line is needed according to the v1.4 migration guide, otherwise
+# pr_verify may fail during bitstream generation (this actually happened once).
+# See https://forums.aws.amazon.com/message.jspa?messageID=880372
+set_param hd.clockRoutingWireReduction false
+
 ##################################################
 ### CL XPR OOC Synthesis
 ##################################################

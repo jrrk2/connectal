@@ -36,10 +36,10 @@
 
 BSC="bsc"
 BSCFLAGS="-keep-fires -cross-info -aggressive-conditions \
-          -wait-for-license -suppress-warnings G0043 \
+          -suppress-warnings G0043 \
           -steps-warn-interval 300000 \
           -simdir bluesim -bdir bluesim -info-dir bluesim \
-          -p +:../../../bluecheck:../../bsv:../../lib/bsv"
+          -p +:../../../bluecheck:../../bsv:../../lib/bsv" # -wait-for-license 
 SUFFIXES=
 
 # UI

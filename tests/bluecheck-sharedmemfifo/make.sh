@@ -36,13 +36,13 @@
 
 BSC="bsc"
 BSCFLAGS="-keep-fires -cross-info -aggressive-conditions \
-          -wait-for-license -suppress-warnings G0043 \
+          -suppress-warnings G0043 \
           -steps-warn-interval 300000 \
           -simdir bluesim -bdir bluesim -info-dir bluesim \
           -show-schedule \
           -D PinTypeInclude=HostInterface -D PinType=Empty -D BurstLenSize=8 -D PhysAddrWidth=16 -D NumberOfMasters=1 \
           -D SlaveDataBusWidth=32 -D SlaveControlAddrWidth=16 -D NumberOfUserTiles=16 \
-          -p +:../../../bluecheck:../../lib/bsv:../../bsv"
+          -p +:../../../bluecheck:../../lib/bsv:../../bsv" # -wait-for-license
 SUFFIXES=
 
 # UI

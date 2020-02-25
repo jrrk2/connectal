@@ -99,7 +99,7 @@ endif
 
 BSCOPTFLAGS= -show-schedule -aggressive-conditions -show-method-bvi
 BSCPATHFLAGS=  -bdir $(DTOP)/obj -vdir $(DTOP)/verilog -simdir $(DTOP)/obj -info-dir $(DTOP)/obj
-BSCFLAGS_COMMON += $(BSCWARNFLAGS) $(BSCOPTFLAGS) $(BSCPATHFLAGS) --wait-for-license
+BSCFLAGS_COMMON += $(BSCWARNFLAGS) $(BSCOPTFLAGS) $(BSCPATHFLAGS) # --wait-for-license
 PROF_FLAGS= #-pg
 export SIM_CFLAGS= $(CFLAGS_PROJECT) -fPIC -Ijni -I $(CONNECTALDIR)/cpp -I $(CONNECTALDIR) -I $(CONNECTALDIR)/lib/json -O $(PROF_FLAGS)
 export SIM_CXXFLAGS= $(CXXFLAGS_PROJECT) -fPIC -Ijni -I $(CONNECTALDIR)/cpp -I $(CONNECTALDIR) -O $(PROF_FLAGS)
